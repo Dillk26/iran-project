@@ -637,54 +637,106 @@ p{margin:0}
 .reading-tags{display:flex;gap:.45rem;flex-wrap:wrap;margin-top:.8rem}
 
 /* ============================================================
-   HUDDLE TIMER OVERLAY
+   HUDDLE TIMER — docked bar, never covers the options
+   It sits between the stage and the footer as a flex sibling, so the
+   stage shrinks to make room rather than being hidden behind a modal.
    ============================================================ */
 #huddle{
-  position:fixed;inset:0;z-index:60;display:none;
-  background:radial-gradient(120% 90% at 50% 40%, rgba(9,13,22,.84), rgba(4,6,11,.96));
-  backdrop-filter:blur(10px);
-  align-items:center;justify-content:center;padding:2rem;
+  position:relative;z-index:50;flex:0 0 auto;display:none;
+  align-items:center;gap:1.2rem;padding:.55rem 1.4rem .6rem;
+  background:linear-gradient(180deg,#121C2B 0%,#0B1220 100%);
+  border-top:2px solid rgba(251,191,36,.55);
+  box-shadow:0 -22px 50px -28px rgba(0,0,0,.95);
 }
-#huddle.on{display:flex;animation:fadeIn .3s ease both}
-.huddle-card{
-  width:min(96rem,100%);text-align:center;
-  background:linear-gradient(180deg,rgba(17,26,40,.96),rgba(9,13,22,.96));
-  border:1px solid rgba(251,191,36,.42);border-radius:var(--radius-lg);
-  padding:2rem 2.4rem;box-shadow:0 0 90px -20px rgba(251,191,36,.45);
-  position:relative;overflow:hidden;
-}
-.huddle-card::before{
-  content:"";position:absolute;inset:0;border-radius:var(--radius-lg);pointer-events:none;
-  box-shadow:inset 0 0 0 1px rgba(251,191,36,.12);
+#huddle.on{display:flex;animation:huddleIn .34s cubic-bezier(.2,.8,.2,1) both}
+@keyframes huddleIn{from{opacity:0;transform:translateY(18px)}to{opacity:1;transform:none}}
+#huddle::after{
+  content:"";position:absolute;inset:0;pointer-events:none;
   animation:huddlePulse 2.1s ease-in-out infinite;
 }
-@keyframes huddlePulse{0%,100%{box-shadow:inset 0 0 0 1px rgba(251,191,36,.12),inset 0 0 60px rgba(251,191,36,.06)}50%{box-shadow:inset 0 0 0 1px rgba(251,191,36,.34),inset 0 0 90px rgba(251,191,36,.14)}}
-.huddle-top{display:flex;align-items:center;justify-content:center;gap:1.2rem;margin-bottom:1.2rem}
-.huddle-kicker{font-family:var(--font-mono);font-size:1rem;letter-spacing:.28em;text-transform:uppercase;color:var(--amber)}
-.huddle-grid{display:grid;grid-template-columns:auto minmax(0,1fr);gap:2.2rem;align-items:center;text-align:left}
-.ring-wrap{position:relative;width:13rem;height:13rem;flex:0 0 auto}
-.ring-wrap svg{transform:rotate(-90deg);width:100%;height:100%}
-.ring-bg{fill:none;stroke:#1A2434;stroke-width:9}
-.ring-fg{fill:none;stroke:var(--amber);stroke-width:9;stroke-linecap:round;filter:drop-shadow(0 0 10px rgba(251,191,36,.7));transition:stroke .4s ease}
-.ring-fg.urgent{stroke:var(--crimson);filter:drop-shadow(0 0 12px rgba(244,63,94,.8))}
-.ring-time{
-  position:absolute;inset:0;display:flex;flex-direction:column;align-items:center;justify-content:center;
+@keyframes huddlePulse{
+  0%,100%{box-shadow:inset 0 2px 0 0 rgba(251,191,36,.10)}
+  50%{box-shadow:inset 0 2px 0 0 rgba(251,191,36,.42),inset 0 26px 50px -30px rgba(251,191,36,.3)}
 }
-.ring-time .num{font-family:var(--font-mono);font-size:3.4rem;font-weight:800;line-height:1;font-variant-numeric:tabular-nums}
-.ring-time .unit{font-family:var(--font-mono);font-size:.76rem;letter-spacing:.2em;text-transform:uppercase;color:var(--ink-faint);margin-top:.3rem}
-.huddle-prompt h3{font-size:2.5rem;font-weight:900;letter-spacing:-.03em;margin-bottom:.3rem}
-.huddle-prompt .lead{font-size:1.3rem;color:var(--ink-dim);margin-bottom:1rem}
-.huddle-qs{list-style:none;margin:0;padding:0}
-.huddle-qs li{
-  position:relative;padding-left:2.2rem;font-size:1.28rem;line-height:1.36;margin-top:.62rem;color:var(--ink);
+
+/* a progress line along the top edge costs no vertical space */
+.huddle-prog{position:absolute;left:0;right:0;top:0;height:3px;background:#1A2434}
+.huddle-prog span{
+  display:block;height:100%;width:100%;background:var(--amber);
+  box-shadow:0 0 12px rgba(251,191,36,.8);transition:background .3s ease;
 }
+.huddle-prog span.urgent{background:var(--crimson);box-shadow:0 0 12px rgba(244,63,94,.9)}
+.huddle-count{
+  flex:0 0 auto;display:flex;align-items:baseline;gap:.3rem;min-width:4.6rem;
+}
+.huddle-count .num{
+  font-family:var(--font-mono);font-size:2.25rem;font-weight:800;line-height:1;
+  font-variant-numeric:tabular-nums;color:var(--amber);
+}
+.huddle-count small{font-family:var(--font-mono);font-size:.72rem;letter-spacing:.14em;text-transform:uppercase;color:var(--ink-faint)}
+#huddle.urgent .huddle-count .num{color:var(--crimson)}
+.huddle-tally{
+  font-family:var(--font-mono);font-size:.84rem;letter-spacing:.1em;text-transform:uppercase;
+  color:var(--ink-dim);white-space:nowrap;margin-left:auto;
+}
+.huddle-tally b{color:var(--amber);font-size:1.08rem}
+
+.huddle-body{flex:1 1 auto;min-width:0}
+.huddle-top{display:flex;align-items:center;gap:1rem}
+.huddle-kicker{
+  font-family:var(--font-mono);font-size:.82rem;letter-spacing:.2em;text-transform:uppercase;
+  color:var(--amber);white-space:nowrap;
+}
+.huddle-lead{font-size:1.06rem;font-weight:700;color:var(--ink);white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+.huddle-keys{font-size:.82rem;color:var(--ink-faint);white-space:nowrap;flex:0 0 auto}
+
+.huddle-qs{
+  display:grid;grid-template-columns:repeat(3,minmax(0,1fr));gap:1.2rem;
+  list-style:none;margin:.4rem 0 0;padding:0;
+}
+.huddle-qs li{position:relative;padding-left:1.7rem;font-size:.96rem;line-height:1.26;color:var(--ink-dim)}
 .huddle-qs li .n{
-  position:absolute;left:0;top:.1rem;width:1.6rem;height:1.6rem;border-radius:6px;display:grid;place-items:center;
-  font-family:var(--font-mono);font-size:.82rem;font-weight:800;
+  position:absolute;left:0;top:.04rem;width:1.3rem;height:1.3rem;border-radius:5px;display:grid;place-items:center;
+  font-family:var(--font-mono);font-size:.72rem;font-weight:800;
   background:rgba(251,191,36,.14);border:1px solid rgba(251,191,36,.4);color:#FCD34D;
 }
-.huddle-foot{margin-top:1.4rem;display:flex;align-items:center;justify-content:center;gap:1.2rem;flex-wrap:wrap}
-.huddle-done{font-size:2.6rem;font-weight:900;color:var(--emerald);letter-spacing:-.02em}
+.huddle-done{display:none;margin-top:.3rem;font-size:1.6rem;font-weight:900;letter-spacing:-.02em;color:var(--emerald)}
+#huddle.done{border-top-color:rgba(52,211,153,.65)}
+#huddle.done::after{animation:none}
+#huddle.done .huddle-qs{display:none}
+/* the action row duplicates keys that still work during a huddle, so it yields
+   its height to the option cards while the discussion runs */
+#app.huddling .act-actions{display:none}
+#app.huddling .pc-list li{margin-top:.4rem}
+#app.huddling .opt-thesis{margin-bottom:.6rem}
+#app.huddling .opt-advocate{margin-bottom:.32rem}
+/* the outcome and debrief screens tighten their leading too, so a huddle
+   called on them still shows everything rather than clipping it */
+#app.huddling .tl{padding:.7rem 0}
+#app.huddling .tl .tx{font-size:1.2rem}
+#app.huddling .takeaway{padding:.9rem 1rem}
+#app.huddling .takeaway p{font-size:1.14rem;margin-top:.45rem}
+#app.huddling .story-quote{padding:.6rem .85rem}
+#app.huddling .story-quote .q{font-size:1.08rem}
+#app.huddling .cons-meters .mchip{padding:.55rem .9rem}
+#app.huddling .arch-card{padding:.9rem 1rem;gap:.55rem}
+#app.huddling .arch-name{font-size:1.6rem}
+#app.huddling .arch-desc{font-size:.98rem}
+#app.huddling .path-item{padding:.3rem 0}
+#app.huddling .score{padding:.4rem .5rem}
+#app.huddling .score .v{font-size:1.4rem}
+#app.huddling .crow{padding:.42rem 0}
+#app.huddling .crow .cu,#app.huddling .crow .cth{font-size:.9rem}
+#app.huddling .deb-top h2{font-size:2rem}
+#app.huddling .adj-layout h2{font-size:2.3rem}
+#huddle.done .huddle-done{display:block}
+
+.huddle-x{
+  flex:0 0 auto;width:2.2rem;height:2.2rem;border-radius:8px;border:1px solid var(--line);
+  background:#101A28;color:var(--ink-faint);font-size:1.3rem;line-height:1;
+  display:grid;place-items:center;transition:all .2s ease;
+}
+.huddle-x:hover{background:#18243A;color:var(--ink);border-color:#31455F}
 
 /* ============================================================
    FINAL DEBRIEF + ADJOURN
@@ -756,7 +808,7 @@ p{margin:0}
 
 /* Toast */
 #toast{
-  position:fixed;left:50%;bottom:5.4rem;transform:translate(-50%,160%);z-index:70;
+  position:absolute;left:50%;bottom:1.6rem;transform:translate(-50%,260%);z-index:70;
   padding:.65rem 1.3rem;border-radius:99px;font-size:1.02rem;font-weight:600;
   background:rgba(13,20,32,.96);border:1px solid rgba(251,191,36,.45);color:#FCD34D;
   box-shadow:var(--shadow-lift);white-space:nowrap;
@@ -938,7 +990,26 @@ p{margin:0}
     <!-- SCENE: ADJOURN (rendered by JS) -->
     <section class="scene" id="sc-adjourn" data-scene="adjourn"><div class="adj-layout" id="adjLayout"></div></section>
 
+    <div id="toast"></div>
   </main>
+
+  <!-- ================= HUDDLE TIMER (docked, non-blocking) ================= -->
+  <section id="huddle" aria-live="polite" aria-label="Neighbour huddle timer">
+    <div class="huddle-prog"><span id="huddleProg"></span></div>
+    <div class="huddle-count"><span class="num" id="huddleNum">90</span><small>sec</small></div>
+    <div class="huddle-body">
+      <div class="huddle-top">
+        <span class="huddle-kicker">90-second huddle</span>
+        <span class="pill am" id="huddleScope">Act I &middot; Recruitment</span>
+        <span class="huddle-lead" id="huddleLead">Turn to the 2&ndash;3 people next to you.</span>
+        <span class="huddle-tally" id="huddleTally"></span>
+        <span class="huddle-keys"><span class="kbd">Space</span> pause &middot; <span class="kbd">Esc</span> close &middot; <span class="kbd">1</span><span class="kbd">2</span><span class="kbd">3</span> still count</span>
+      </div>
+      <ul class="huddle-qs" id="huddleQs"></ul>
+      <div class="huddle-done">Time &mdash; hands up.</div>
+    </div>
+    <button class="huddle-x" id="huddleX" title="Close (Esc)" aria-label="Close huddle">&times;</button>
+  </section>
 
   <!-- ================= FOOTER ================= -->
   <footer id="foot">
@@ -962,37 +1033,6 @@ p{margin:0}
     </div>
   </footer>
 
-  <!-- ================= HUDDLE TIMER ================= -->
-  <div id="huddle" role="dialog" aria-label="Neighbor huddle timer">
-    <div class="huddle-card">
-      <div class="huddle-top">
-        <span class="huddle-kicker">90-Second Neighbor Huddle</span>
-        <span class="pill am" id="huddleScope">Act I &middot; Recruitment</span>
-      </div>
-      <div class="huddle-grid">
-        <div class="ring-wrap">
-          <svg viewBox="0 0 120 120">
-            <circle class="ring-bg" cx="60" cy="60" r="52"></circle>
-            <circle class="ring-fg" id="ringFg" cx="60" cy="60" r="52" stroke-dasharray="326.7" stroke-dashoffset="0"></circle>
-          </svg>
-          <div class="ring-time">
-            <div class="num" id="huddleNum">90</div>
-            <div class="unit">seconds</div>
-          </div>
-        </div>
-        <div class="huddle-prompt">
-          <h3>Turn to the 2&ndash;3 people next to you.</h3>
-          <p class="lead" id="huddleLead">Argue it out before the hand vote. You have to come back with a choice.</p>
-          <ul class="huddle-qs" id="huddleQs"></ul>
-        </div>
-      </div>
-      <div class="huddle-foot">
-        <span class="hint"><span class="kbd">Space</span> pause / resume &middot; <span class="kbd">Esc</span> close &middot; <span class="kbd">1</span><span class="kbd">2</span><span class="kbd">3</span> still tally votes</span>
-      </div>
-    </div>
-  </div>
-
-  <div id="toast"></div>
 </div>
 
 <script>
@@ -1798,6 +1838,7 @@ function paintVotes(actIdx, bumped){
   var btn = $('#btnLock');
   if (btn) btn.disabled = (total === 0) || S.decided[actIdx]!==null;
   var tot = $('#voteTotal'); if (tot) tot.textContent = total;
+  syncHuddleTally();
 }
 function paintFinalVotes(bumped){
   var max = Math.max.apply(null, S.finalVotes);
@@ -1852,6 +1893,20 @@ function togglePcView(){
   toast(S.pcView === 'pro' ? 'Showing: strategic upside' : 'Showing: risk &amp; cost');
 }
 
+/* The action row is hidden during a huddle, so the running tally moves
+   into the bar where the presenter can still see it. */
+function syncHuddleTally(){
+  var el = $('#huddleTally');
+  if (!el) return;
+  var sc = SCENES[S.scene];
+  if (sc.id === 'act' && S.decided[sc.act] === null){
+    var v = S.votes[sc.act];
+    el.innerHTML = 'Hands <b>' + (v[0]+v[1]+v[2]) + '</b>';
+  } else {
+    el.innerHTML = '';
+  }
+}
+
 /* ---- Huddle timer ---- */
 var HUDDLE_SECONDS = 90;
 var RING_LEN = 2*Math.PI*52;
@@ -1876,17 +1931,29 @@ function openHuddle(){
     return '<li><span class="n">'+(i+1)+'</span>'+q+'</li>';
   }).join('');
   S.huddle.on = true; S.huddle.paused = false; S.huddle.remaining = HUDDLE_SECONDS; S.huddle.last = performance.now();
-  $('#huddle').classList.add('on');
-  $('#ringFg').setAttribute('stroke-dasharray', RING_LEN);
-  $('#ringFg').classList.remove('urgent');
+  var el = $('#huddle');
+  el.classList.remove('done');
+  el.classList.add('on');
+  el.classList.remove('urgent');
+  $('#huddleProg').classList.remove('urgent');
+  $('#huddleProg').style.width = '100%';
   $('#huddleNum').textContent = HUDDLE_SECONDS;
+  $('#app').classList.add('huddling');
+  syncHuddleTally();
+  /* the bar takes height from the stage, so the canvases need to re-measure */
+  Art.refit();
   tickHuddle();
 }
 function closeHuddle(){
   S.huddle.on = false;
   if (S.huddle.raf) cancelAnimationFrame(S.huddle.raf);
   S.huddle.raf = null;
-  $('#huddle').classList.remove('on');
+  var el = $('#huddle');
+  el.classList.remove('on');
+  el.classList.remove('done');
+  el.classList.remove('urgent');
+  $('#app').classList.remove('huddling');
+  Art.refit();
 }
 function tickHuddle(){
   if (!S.huddle.on) return;
@@ -1896,12 +1963,14 @@ function tickHuddle(){
   if (!S.huddle.paused) S.huddle.remaining = Math.max(0, S.huddle.remaining - dt);
   var r = S.huddle.remaining;
   $('#huddleNum').textContent = Math.ceil(r);
-  var ring = $('#ringFg');
-  ring.setAttribute('stroke-dashoffset', RING_LEN * (1 - r/HUDDLE_SECONDS));
-  ring.classList.toggle('urgent', r <= 15);
+  var prog = $('#huddleProg');
+  prog.style.width = (r / HUDDLE_SECONDS * 100) + '%';
+  prog.classList.toggle('urgent', r <= 15);
+  $('#huddle').classList.toggle('urgent', r <= 15);
   if (r <= 0){
     $('#huddleNum').textContent = '0';
-    $('#huddleLead').innerHTML = '<span class="huddle-done">Time &mdash; hands up.</span>';
+    $('#huddleProg').style.width = '0%';
+    $('#huddle').classList.add('done');
     chime();
     S.huddle.on = false; S.huddle.raf = null;
     return;
@@ -1910,11 +1979,11 @@ function tickHuddle(){
 }
 function toggleHuddle(){
   if ($('#huddle').classList.contains('on')){
-    if (!S.huddle.on && S.huddle.remaining <= 0){ closeHuddle(); $('#huddleLead').innerHTML = 'Argue it out before the hand vote. You have to come back with a choice.'; return; }
+    /* once time is up, Space closes the bar rather than resuming a dead timer */
+    if (!S.huddle.on && S.huddle.remaining <= 0){ closeHuddle(); return; }
     S.huddle.paused = !S.huddle.paused;
     toast(S.huddle.paused ? 'Huddle paused' : 'Huddle running');
   } else {
-    $('#huddleLead').innerHTML = 'Argue it out before the hand vote. You have to come back with a choice.';
     openHuddle();
   }
 }
@@ -3518,12 +3587,14 @@ var Art = (function(){
   }
   requestAnimationFrame(loop);
 
-  window.addEventListener('resize', function(){
+  function refitAll(){
     Object.keys(mods).forEach(function(k){ if (mods[k].refit) mods[k].refit(); });
-  });
+  }
+  window.addEventListener('resize', refitAll);
 
   return {
     setActive: function(id){ active = (mods[id] ? id : null); },
+    refit: refitAll,
     title:T, orbital:O, descent:D, street:ST, room:R
   };
 })();
@@ -3557,7 +3628,7 @@ document.addEventListener('keydown', function(e){
 
 $('#btnNext').addEventListener('click', nextStep);
 $('#btnPrev').addEventListener('click', prevStep);
-$('#huddle').addEventListener('click', function(e){ if (e.target === this) closeHuddle(); });
+$('#huddleX').addEventListener('click', closeHuddle);
 
 /* Click anywhere on a cinematic scene to advance; option cards break ties */
 $('#stage').addEventListener('click', function(e){
